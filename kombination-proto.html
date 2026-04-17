@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kombinationsartikel — BackOffice prototyp</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F5F4F1;
+    --surface: #FFFFFF;
+    --surface2: #F0EEE9;
+    --border: rgba(0,0,0,0.10);
+    --border-md: rgba(0,0,0,0.18);
+    --text: #1A1916;
+    --text-2: #6B6860;
+    --text-3: #9C9A94;
+    --blue: #178dde;
+    --blue-bg: #EBF5FD;
+    --blue-text: #0D5E9A;
+    --green: #1A8A4A;
+    --green-bg: #E8F6EE;
+    --green-text: #135C32;
+    --green-border: rgba(26,138,74,0.25);
+    --radius: 10px;
+    --radius-sm: 6px;
+    --radius-pill: 99px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.07), 0 4px 12px rgba(0,0,0,0.05);
+  }
+
+  body {
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--border);
+    padding: 0 2rem;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-logo {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -.02em;
+  }
+  .topbar-sep { color: var(--border-md); font-size: 18px; }
+  .topbar-breadcrumb { font-size: 13px; color: var(--text-2); display: flex; align-items: center; gap: .4rem; }
+  .topbar-breadcrumb span { color: var(--text); font-weight: 500; }
+  .topbar-actions { margin-left: auto; display: flex; gap: .5rem; }
+
+  /* LAYOUT */
+  .layout { max-width: 780px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+  .page-title {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -.02em;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+  }
+
+  /* CARD */
+  .card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  /* FORM */
+  .field-row { display: flex; gap: 1rem; margin-bottom: 1.25rem; }
+  .field { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+  .field label { font-size: 12px; color: var(--text-2); font-weight: 500; }
+  .input {
+    height: 36px;
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius-sm);
+    padding: 0 10px;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+    font-family: inherit;
+    transition: border-color .15s;
+    width: 100%;
+  }
+  .input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(23,141,222,0.12); }
+  .input.mock { cursor: default; color: var(--text); }
+  .input.placeholder-style { color: var(--text-3); }
+
+  select.input { cursor: pointer; }
+
+  .checkbox-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 36px;
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius-sm);
+    padding: 0 10px;
+    background: var(--surface);
+    cursor: pointer;
+    user-select: none;
+  }
+  .checkbox-box {
+    width: 15px; height: 15px;
+    border-radius: 3px;
+    background: var(--blue);
+    border: 0.5px solid var(--blue);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .checkbox-box svg { width: 10px; height: 10px; }
+  .checkbox-label { font-size: 13px; color: var(--text); }
+
+  /* DIVIDER */
+  .divider { height: 0.5px; background: var(--border); margin: 1.25rem 0; }
+
+  /* SECTION LABEL */
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-3);
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    margin-bottom: .875rem;
+  }
+
+  /* STEP BLOCKS */
+  .steps { display: flex; flex-direction: column; gap: .5rem; }
+
+  .step-block {
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    transition: border-color .15s;
+  }
+  .step-block.active { border-color: var(--blue); }
+  .step-block.new-step { border-color: var(--blue); border-style: solid; }
+
+  .step-header {
+    padding: .75rem 1rem;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    gap: .625rem;
+    cursor: pointer;
+    user-select: none;
+    transition: background .1s;
+  }
+  .step-header:hover { background: #E8E6E0; }
+  .step-header.active-header { background: var(--blue-bg); }
+  .step-header.new-header { background: var(--blue-bg); cursor: default; }
+  .step-header.new-header:hover { background: var(--blue-bg); }
+
+  .drag-handle { color: var(--text-3); font-size: 14px; cursor: grab; opacity: .5; }
+  .step-num {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--surface);
+    border: 0.5px solid var(--border-md);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600;
+    color: var(--text-2);
+    flex-shrink: 0;
+  }
+  .step-num.blue { background: var(--blue-bg); border-color: rgba(23,141,222,.3); color: var(--blue-text); }
+  .step-name { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; }
+  .step-name.blue-text { color: var(--blue-text); }
+  .badge {
+    font-size: 11px; padding: 2px 8px;
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    color: var(--text-2);
+    border: 0.5px solid var(--border);
+  }
+  .chevron { margin-left: auto; font-size: 10px; color: var(--text-3); transition: transform .15s; }
+  .chevron.open { transform: rotate(180deg); }
+
+  /* COLLAPSED PILLS */
+  .collapsed-body {
+    padding: .75rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: .375rem;
+    flex-wrap: wrap;
+  }
+  .pill {
+    font-size: 12px; padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    background: var(--surface2);
+    color: var(--text);
+    border: 0.5px solid var(--border);
+  }
+  .pill.default {
+    background: var(--green-bg);
+    color: var(--green-text);
+    border-color: var(--green-border);
+  }
+
+  /* STEP BODY (article picker) */
+  .step-body { padding: 1rem; }
+
+  .search-row { display: flex; gap: .5rem; margin-bottom: .75rem; }
+  .search-wrap { position: relative; flex: 1; }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-3); font-size: 13px; pointer-events: none; }
+  .search-input {
+    width: 100%; height: 32px;
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius-sm);
+    padding: 0 10px 0 30px;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+    font-family: inherit;
+  }
+  .search-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(23,141,222,0.1); }
+
+  .filter-sel {
+    height: 32px;
+    border: 0.5px solid var(--border-md);
+    border-radius: var(--radius-sm);
+    padding: 0 10px;
+    font-size: 12px;
+    color: var(--text-2);
+    background: var(--surface);
+    min-width: 155px;
+    cursor: pointer;
+    font-family: inherit;
+    outline: none;
+  }
+
+  .article-list { display: flex; flex-direction: column; gap: 1px; max-height: 220px; overflow-y: auto; }
+  .article-row {
+    display: flex; align-items: center; gap: .625rem;
+    padding: 7px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background .1s;
+  }
+  .article-row:hover { background: var(--surface2); }
+  .article-row.selected { background: var(--blue-bg); }
+
+  .art-checkbox {
+    width: 16px; height: 16px;
+    border-radius: 4px;
+    border: 0.5px solid var(--border-md);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    background: var(--surface);
+    transition: background .1s, border-color .1s;
+  }
+  .art-checkbox.checked { background: var(--blue); border-color: var(--blue); }
+  .art-checkbox.checked::after { content: ''; display: block; width: 8px; height: 5px; border-left: 1.5px solid #fff; border-bottom: 1.5px solid #fff; transform: rotate(-45deg) translateY(-1px); }
+
+  .art-name { flex: 1; color: var(--text); }
+  .article-row.selected .art-name { color: var(--blue-text); }
+  .art-group { font-size: 11px; color: var(--text-3); min-width: 75px; text-align: right; }
+  .article-row.selected .art-group { color: var(--blue-text); opacity: .7; }
+
+  .set-default-btn { font-size: 11px; color: var(--text-3); cursor: pointer; text-decoration: underline; white-space: nowrap; }
+  .set-default-btn:hover { color: var(--text-2); }
+  .default-badge {
+    font-size: 11px; padding: 1px 7px;
+    border-radius: var(--radius-pill);
+    background: var(--green-bg);
+    color: var(--green-text);
+    border: 0.5px solid var(--green-border);
+    white-space: nowrap;
+  }
+
+  .picker-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: .75rem;
+    padding-top: .75rem;
+    border-top: 0.5px solid var(--border);
+  }
+  .footer-count { font-size: 12px; color: var(--text-2); }
+
+  /* NEW STEP BODY */
+  .new-step-body { padding: 1rem; }
+  .name-row { display: flex; align-items: center; gap: .75rem; margin-bottom: .5rem; }
+  .name-label { font-size: 13px; color: var(--text-2); min-width: 90px; }
+  .name-input {
+    height: 34px; flex: 1;
+    border: 1.5px solid var(--blue);
+    border-radius: var(--radius-sm);
+    padding: 0 10px;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--surface);
+    outline: none;
+    font-family: inherit;
+    box-shadow: 0 0 0 3px rgba(23,141,222,0.1);
+  }
+  .field-hint { font-size: 12px; color: var(--text-3); padding-left: calc(90px + .75rem); margin-bottom: .875rem; }
+  .new-btns { display: flex; gap: .5rem; padding-left: calc(90px + .75rem); }
+
+  /* BUTTONS */
+  .btn {
+    height: 32px; padding: 0 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    gap: 5px;
+    font-family: inherit;
+    transition: opacity .15s, transform .1s;
+    border: none;
+  }
+  .btn:active { transform: scale(.98); }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-primary:hover { opacity: .9; }
+  .btn-primary:disabled { opacity: .4; cursor: default; }
+  .btn-ghost { background: transparent; border: 0.5px solid var(--border-md); color: var(--text-2); }
+  .btn-ghost:hover { background: var(--surface2); }
+  .btn-sm { height: 28px; padding: 0 10px; font-size: 12px; }
+
+  /* ADD STEP */
+  .add-step-btn {
+    display: flex; align-items: center; justify-content: center; gap: .5rem;
+    height: 40px;
+    border: 0.5px dashed var(--border-md);
+    border-radius: var(--radius);
+    font-size: 13px; color: var(--text-2);
+    cursor: pointer;
+    transition: background .1s;
+    margin-top: .25rem;
+  }
+  .add-step-btn:hover { background: var(--surface2); }
+  .add-step-btn.disabled { opacity: .35; pointer-events: none; }
+
+  /* FORM ACTIONS */
+  .form-actions {
+    display: flex; align-items: center; justify-content: flex-end; gap: .5rem;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 0.5px solid var(--border);
+  }
+
+  /* TOAST */
+  .toast {
+    display: flex; align-items: center; gap: .5rem;
+    padding: .6rem 1rem;
+    background: var(--green-bg);
+    border: 0.5px solid var(--green-border);
+    border-radius: var(--radius-sm);
+    font-size: 13px; color: var(--green-text);
+    margin-bottom: 1rem;
+    animation: slideIn .2s ease;
+  }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* SAVED STATE */
+  .saved-banner {
+    background: var(--green-bg);
+    border: 0.5px solid var(--green-border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    display: flex; align-items: center; gap: .75rem;
+    margin-bottom: 1rem;
+    animation: slideIn .25s ease;
+  }
+  .saved-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--green); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .saved-icon svg { width: 16px; height: 16px; }
+  .saved-text { font-size: 13px; color: var(--green-text); }
+  .saved-text strong { font-weight: 600; }
+
+  .proto-note {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-3);
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 0.5px solid var(--border);
+  }
+
+  @media (max-width: 600px) {
+    .field-row { flex-direction: column; }
+    .layout { padding: 1.25rem 1rem 3rem; }
+    .topbar { padding: 0 1rem; }
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-logo">BackOffice</span>
+  <span class="topbar-sep">/</span>
+  <div class="topbar-breadcrumb">Artiklar <span>›</span> <span>Ny kombinationsartikel</span></div>
+  <div class="topbar-actions">
+    <button class="btn btn-ghost btn-sm" onclick="resetAll()">Återställ prototyp</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="page-title">Ny kombinationsartikel</div>
+
+  <div id="toastArea"></div>
+  <div id="savedBanner" style="display:none"></div>
+
+  <div class="card" id="mainCard">
+    <div class="field-row">
+      <div class="field">
+        <label>Namn</label>
+        <input class="input" type="text" value="Stora menyn" id="comboName">
+      </div>
+      <div class="field">
+        <label>Kassekategori</label>
+        <select class="input">
+          <option value="">Välj kategori</option>
+          <option>Menyer</option>
+          <option>Lunch</option>
+          <option>À la carte</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Kvittovisning</label>
+        <select class="input" id="receiptMode">
+          <option value="total">Totalpris – Stora menyn · 230 kr</option>
+          <option value="itemized" selected>Per del – Förrätt: Laxtataki · 80 kr</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="section-label">Delar</div>
+
+    <div class="steps" id="stepsList">
+
+      <!-- STEP 1: Förrätt -->
+      <div class="step-block" id="step-0">
+        <div class="step-header" onclick="toggleStep(0)">
+          <span class="drag-handle">⠿</span>
+          <div class="step-num">1</div>
+          <span class="step-name">Förrätt</span>
+          <span class="badge" id="badge-0">3 artiklar</span>
+          <span class="chevron" id="chev-0">▾</span>
+        </div>
+        <div id="body-0" class="collapsed-body">
+          <span class="pill default">Laxtataki (standard)</span>
+          <span class="pill">Burrata</span>
+          <span class="pill">Säsongens soppa</span>
+        </div>
+      </div>
+
+      <!-- STEP 2: Varmrätt -->
+      <div class="step-block" id="step-1">
+        <div class="step-header" onclick="toggleStep(1)">
+          <span class="drag-handle">⠿</span>
+          <div class="step-num">2</div>
+          <span class="step-name">Varmrätt</span>
+          <span class="badge" id="badge-1">4 artiklar</span>
+          <span class="chevron" id="chev-1">▾</span>
+        </div>
+        <div id="body-1" class="collapsed-body">
+          <span class="pill default">Entrecôte (standard)</span>
+          <span class="pill">Lax</span>
+          <span class="pill">Pasta funghi</span>
+          <span class="pill">Vegetarisk biff</span>
+        </div>
+      </div>
+
+      <!-- STEP 3: Dessert -->
+      <div class="step-block" id="step-2">
+        <div class="step-header" onclick="toggleStep(2)">
+          <span class="drag-handle">⠿</span>
+          <div class="step-num">3</div>
+          <span class="step-name">Dessert</span>
+          <span class="badge" id="badge-2">2 artiklar</span>
+          <span class="chevron" id="chev-2">▾</span>
+        </div>
+        <div id="body-2" class="collapsed-body">
+          <span class="pill default">Chokladfondant (standard)</span>
+          <span class="pill">Sorbet</span>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="add-step-btn" id="addStepBtn" onclick="showNewStep()">
+      <span style="font-size:16px;line-height:1">+</span> Lägg till del
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="resetAll()">Avbryt</button>
+      <button class="btn btn-primary" onclick="saveCombo()">Spara kombination</button>
+    </div>
+  </div>
+
+  <p class="proto-note">Prototyp — BackOffice kombinationsartikel · OpenPOS</p>
+</div>
+
+<script>
+const ARTICLES = [
+  {name:'Husets rödvin', group:'Alkohol'},
+  {name:'Husets vitvin', group:'Alkohol'},
+  {name:'Prosecco', group:'Alkohol'},
+  {name:'Gin & tonic', group:'Alkohol'},
+  {name:'Öl', group:'Alkohol'},
+  {name:'Mineralvatten', group:'Dryck'},
+  {name:'Lemonad', group:'Dryck'},
+  {name:'Kaffe', group:'Dryck'},
+  {name:'Te', group:'Dryck'},
+  {name:'Apelsinjuice', group:'Dryck'},
+  {name:'Laxtataki', group:'Förrätter'},
+  {name:'Burrata', group:'Förrätter'},
+  {name:'Säsongens soppa', group:'Förrätter'},
+  {name:'Ceviche', group:'Förrätter'},
+  {name:'Entrecôte', group:'Varmrätter'},
+  {name:'Lax', group:'Varmrätter'},
+  {name:'Pasta funghi', group:'Varmrätter'},
+  {name:'Vegetarisk biff', group:'Varmrätter'},
+  {name:'Chokladfondant', group:'Dessert'},
+  {name:'Sorbet', group:'Dessert'},
+  {name:'Osttallrik', group:'Dessert'},
+];
+
+const GROUPS = ['Alla', ...new Set(ARTICLES.map(a => a.group))];
+
+let stepCount = 3;
+let openSteps = {};
+let newStepVisible = false;
+let pickerState = {};
+
+function toggleStep(idx) {
+  if (newStepVisible) return;
+  openSteps[idx] = !openSteps[idx];
+  renderStep(idx);
+}
+
+function renderStep(idx) {
+  const body = document.getElementById('body-' + idx);
+  const chev = document.getElementById('chev-' + idx);
+  const block = document.getElementById('step-' + idx);
+  const header = block.querySelector('.step-header');
+
+  if (openSteps[idx]) {
+    block.classList.add('active');
+    header.classList.add('active-header');
+    chev.classList.add('open');
+    renderPicker(idx);
+  } else {
+    block.classList.remove('active');
+    header.classList.remove('active-header');
+    chev.classList.remove('open');
+    renderCollapsed(idx);
+  }
+}
+
+function renderCollapsed(idx) {
+  const body = document.getElementById('body-' + idx);
+  const state = pickerState[idx];
+  if (!state || state.selected.size === 0) {
+    body.className = 'collapsed-body';
+    body.innerHTML = '<span style="font-size:12px;color:var(--text-3)">Inga artiklar valda</span>';
+    return;
+  }
+  body.className = 'collapsed-body';
+  let html = '';
+  state.selected.forEach(name => {
+    const isDefault = state.defaultArticle === name;
+    html += `<span class="pill${isDefault ? ' default' : ''}">${name}${isDefault ? ' (standard)' : ''}</span>`;
+  });
+  body.innerHTML = html;
+}
+
+function renderPicker(idx) {
+  if (!pickerState[idx]) {
+    pickerState[idx] = { selected: new Set(), defaultArticle: null, search: '', group: '' };
+  }
+  const body = document.getElementById('body-' + idx);
+  body.className = 'step-body';
+
+  const state = pickerState[idx];
+  const filtered = ARTICLES.filter(a =>
+    (!state.search || a.name.toLowerCase().includes(state.search.toLowerCase())) &&
+    (!state.group || a.group === state.group)
+  );
+
+  const groupOptions = GROUPS.map(g =>
+    `<option value="${g === 'Alla' ? '' : g}" ${state.group === (g === 'Alla' ? '' : g) ? 'selected' : ''}>${g === 'Alla' ? 'Varugrupp: Alla' : g}</option>`
+  ).join('');
+
+  body.innerHTML = `
+    <div class="search-row">
+      <div class="search-wrap">
+        <span class="search-icon">⌕</span>
+        <input class="search-input" type="text" placeholder="Sök artikel..." value="${state.search}" id="search-${idx}">
+      </div>
+      <select class="filter-sel" id="group-${idx}">${groupOptions}</select>
+    </div>
+    <div class="article-list" id="alist-${idx}"></div>
+    <div class="picker-footer">
+      <span class="footer-count" id="fcount-${idx}"></span>
+      <button class="btn btn-primary btn-sm" id="doneBtn-${idx}" onclick="closePicker(${idx})">Klar</button>
+    </div>
+  `;
+
+  document.getElementById('search-' + idx).addEventListener('input', e => {
+    pickerState[idx].search = e.target.value;
+    renderArticleList(idx);
+  });
+  document.getElementById('group-' + idx).addEventListener('change', e => {
+    pickerState[idx].group = e.target.value;
+    renderArticleList(idx);
+  });
+
+  renderArticleList(idx);
+}
+
+function renderArticleList(idx) {
+  const state = pickerState[idx];
+  const filtered = ARTICLES.filter(a =>
+    (!state.search || a.name.toLowerCase().includes(state.search.toLowerCase())) &&
+    (!state.group || a.group === state.group)
+  );
+
+  const list = document.getElementById('alist-' + idx);
+  list.innerHTML = filtered.map(a => {
+    const isSel = state.selected.has(a.name);
+    const isDef = state.defaultArticle === a.name;
+    return `
+      <div class="article-row${isSel ? ' selected' : ''}" onclick="toggleArticle(${idx}, '${a.name.replace(/'/g,"\\'")}')">
+        <div class="art-checkbox${isSel ? ' checked' : ''}"></div>
+        <span class="art-name">${a.name}</span>
+        <span class="art-group">${a.group}</span>
+        ${isSel
+          ? isDef
+            ? '<span class="default-badge">Standard</span>'
+            : `<span class="set-default-btn" onclick="setDefault(event,${idx},'${a.name.replace(/'/g,"\\'")}')">Sätt som standard</span>`
+          : '<span style="min-width:100px"></span>'
+        }
+      </div>`;
+  }).join('');
+
+  updatePickerFooter(idx);
+}
+
+function toggleArticle(idx, name) {
+  const state = pickerState[idx];
+  if (state.selected.has(name)) {
+    state.selected.delete(name);
+    if (state.defaultArticle === name) {
+      state.defaultArticle = state.selected.size > 0 ? [...state.selected][0] : null;
+    }
+  } else {
+    state.selected.add(name);
+    if (!state.defaultArticle) state.defaultArticle = name;
+  }
+  renderArticleList(idx);
+  updateBadge(idx);
+}
+
+function setDefault(e, idx, name) {
+  e.stopPropagation();
+  pickerState[idx].defaultArticle = name;
+  renderArticleList(idx);
+}
+
+function updatePickerFooter(idx) {
+  const state = pickerState[idx];
+  const count = state.selected.size;
+  const fc = document.getElementById('fcount-' + idx);
+  const db = document.getElementById('doneBtn-' + idx);
+  if (fc) fc.textContent = count === 0
+    ? 'Inga valda'
+    : `${count} ${count === 1 ? 'vald' : 'valda'} · Standard: ${state.defaultArticle || '–'}`;
+  if (db) db.disabled = count === 0;
+}
+
+function updateBadge(idx) {
+  const state = pickerState[idx];
+  const count = state ? state.selected.size : 0;
+  const badge = document.getElementById('badge-' + idx);
+  if (badge) badge.textContent = count + ' ' + (count === 1 ? 'artikel' : 'artiklar');
+}
+
+function closePicker(idx) {
+  openSteps[idx] = false;
+  const state = pickerState[idx];
+  if (state && state.selected.size > 0) {
+    showToast(`${getStepName(idx)} sparad – ${state.selected.size} ${state.selected.size === 1 ? 'artikel' : 'artiklar'} vald${state.selected.size === 1 ? '' : 'a'}`);
+  }
+  renderStep(idx);
+}
+
+function getStepName(idx) {
+  const block = document.getElementById('step-' + idx);
+  if (!block) return 'Del';
+  return block.querySelector('.step-name').textContent;
+}
+
+function showNewStep() {
+  if (newStepVisible) return;
+  newStepVisible = true;
+  document.getElementById('addStepBtn').classList.add('disabled');
+
+  const newIdx = stepCount;
+  const div = document.createElement('div');
+  div.className = 'step-block new-step';
+  div.id = 'step-' + newIdx;
+  div.innerHTML = `
+    <div class="step-header new-header">
+      <span class="drag-handle" style="opacity:.2">⠿</span>
+      <div class="step-num blue">${newIdx + 1}</div>
+      <span class="step-name blue-text">Ny del</span>
+    </div>
+    <div class="new-step-body">
+      <div class="name-row">
+        <span class="name-label">Namn på del</span>
+        <input class="name-input" type="text" id="newStepName" placeholder="T.ex. Dryck, Tillbehör...">
+      </div>
+      <div class="field-hint">Visas i kassan och på köksbon gen.</div>
+      <div class="new-btns">
+        <button class="btn btn-primary btn-sm" onclick="confirmNewStep(${newIdx})">Välj artiklar</button>
+        <button class="btn btn-ghost btn-sm" onclick="cancelNewStep(${newIdx})">Avbryt</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('stepsList').appendChild(div);
+  setTimeout(() => document.getElementById('newStepName').focus(), 50);
+}
+
+function confirmNewStep(idx) {
+  const nameInput = document.getElementById('newStepName');
+  const name = nameInput.value.trim() || 'Ny del';
+
+  const block = document.getElementById('step-' + idx);
+  block.classList.remove('new-step');
+  block.innerHTML = `
+    <div class="step-header active-header" onclick="toggleStep(${idx})">
+      <span class="drag-handle">⠿</span>
+      <div class="step-num blue">${idx + 1}</div>
+      <span class="step-name">${name}</span>
+      <span class="badge" id="badge-${idx}">0 artiklar</span>
+      <span class="chevron open" id="chev-${idx}">▾</span>
+    </div>
+    <div id="body-${idx}"></div>
+  `;
+
+  stepCount++;
+  newStepVisible = false;
+  openSteps[idx] = true;
+  pickerState[idx] = { selected: new Set(), defaultArticle: null, search: '', group: '' };
+  renderPicker(idx);
+  document.getElementById('addStepBtn').classList.remove('disabled');
+}
+
+function cancelNewStep(idx) {
+  const block = document.getElementById('step-' + idx);
+  block.remove();
+  newStepVisible = false;
+  document.getElementById('addStepBtn').classList.remove('disabled');
+}
+
+function showToast(msg) {
+  const area = document.getElementById('toastArea');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<span style="font-size:14px">✓</span> ${msg}`;
+  area.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function saveCombo() {
+  const name = document.getElementById('comboName').value || 'Stora menyn';
+  document.getElementById('mainCard').style.display = 'none';
+  const banner = document.getElementById('savedBanner');
+  banner.style.display = 'flex';
+  banner.innerHTML = `
+    <div class="saved-banner">
+      <div class="saved-icon">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 8L6.5 11.5L13 5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="saved-text"><strong>${name}</strong> har sparats som kombinationsartikel.</div>
+        <div class="saved-text" style="margin-top:3px;opacity:.7">Artikeln är nu tillgänglig i kassan.</div>
+      </div>
+      <button class="btn btn-ghost btn-sm" style="margin-left:auto" onclick="resetAll()">Skapa ny</button>
+    </div>
+  `;
+}
+
+function resetAll() {
+  location.reload();
+}
+</script>
+</body>
+</html>
